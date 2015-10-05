@@ -44,18 +44,18 @@ metadata {
 	}
 
     tiles(scale: 2) {
-        multiAttributeTile(name:"octothing", type:"generic", width:6, height:4) {
-            tileAttribute("device.state", key: "PRIMARY_CONTROL") {
-              attributeState "Offline", label: '${name}', icon:"st.Office.office19", backgroundColor:"#d3d3d3"
-              attributeState "Refreshing", label: '${name}', icon:"st.Office.office19", backgroundColor:"#79b821"
-              attributeState "Operational", label:'${name}', icon:"st.Office.office19", backgroundColor:"#79b821"
-            }
-        }
+        //multiAttributeTile(name:"octothing", type:"generic", width:6, height:4) {
+        //    tileAttribute("device.state", key: "PRIMARY_CONTROL") {
+        //      attributeState "Offline", label: '${name}', icon:"st.Office.office19", backgroundColor:"#d3d3d3"
+        //      attributeState "Refreshing", label: '${name}', icon:"st.Office.office19", backgroundColor:"#79b821"
+        //      attributeState "Operational", label:'${name}', icon:"st.Office.office19", backgroundColor:"#79b821"
+        //    }
+        //}
         standardTile("refresh", "device.refresh", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
             state "default", action:"refresh.refresh", icon: "st.secondary.refresh"
         }
         valueTile("temperature", "device.extruder1ActualTemp", width: 2, height: 2) {
-            state("temperature", label:'${currentValue}°',
+            state("temperature", label:'E: ${currentValue}°',
                 backgroundColors:[
                     [value: 31, color: "#153591"],
                     [value: 44, color: "#1e9cbb"],
@@ -67,8 +67,10 @@ metadata {
                 ]
             )
         }
-      main "octothing"
-      details (["octothing", "temperature", "refresh"])
+      //main "octothing"
+      //details (["octothing", "temperature", "refresh"])
+      main "temperature"
+      details (["temperature", "refresh"])
     }
 }
 
@@ -105,24 +107,12 @@ def poll() {
 	log.debug "Executing 'poll'"
     sendEvent(name: "state", value: "Refreshing")
     getDeviceInfo()
-	// TODO: handle 'poll' command
 }
 
 def refresh() {
 	log.debug "Executing 'refresh'"
     sendEvent(name: "state", value: "Refreshing")
     getDeviceInfo()
-	// TODO: handle 'refresh' command
-}
-
-def on() {
-	log.debug "Executing 'on'"
-	// TODO: handle 'on' command
-}
-
-def off() {
-	log.debug "Executing 'off'"
-	// TODO: handle 'off' command
 }
 
 private getDeviceInfo() {
