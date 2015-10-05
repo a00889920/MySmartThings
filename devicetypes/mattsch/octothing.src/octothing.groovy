@@ -27,12 +27,12 @@ metadata {
 	definition (name: "OctoThing", namespace: "mattsch", author: "Matthew Schick") {
 		capability "Polling"
 		capability "Refresh"
-		capability "Switch"
+		//capability "Switch"
 		capability "Temperature Measurement"
         
         attribute	"state", "string"
         attribute	"extruder1TargetTemp", "number"
-        attribute	"extruder1ActualTemp", "number"
+        attribute	"extruder1ActualTemp", "string"
         attribute	"bedTargetTemp", "number"
         attribute	"bedActualTemp", "number"
 	}
@@ -54,8 +54,21 @@ metadata {
         standardTile("refresh", "device.refresh", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
             state "default", action:"refresh.refresh", icon: "st.secondary.refresh"
         }
+        valueTile("temperature", "device.extruder1ActualTemp", width: 2, height: 2) {
+            state("temperature", label:'${currentValue}°',
+                backgroundColors:[
+                    [value: 31, color: "#153591"],
+                    [value: 44, color: "#1e9cbb"],
+                    [value: 59, color: "#90d2a7"],
+                    [value: 74, color: "#44b621"],
+                    [value: 84, color: "#f1d801"],
+                    [value: 95, color: "#d04e00"],
+                    [value: 96, color: "#bc2323"]
+                ]
+            )
+        }
       main "octothing"
-      details (["octothing", "refresh"])
+      details (["octothing", "temperature", "refresh"])
     }
 }
 
@@ -66,7 +79,7 @@ def parse(String description) {
     def descMap = parseDescriptionAsMap(description)
     //log.debug descMap
     def body = new String(descMap["body"].decodeBase64())
-    log.debug "body: ${body}"
+    //log.debug "body: ${body}"
     def result
     try {
         def slurper = new JsonSlurper()
@@ -77,8 +90,12 @@ def parse(String description) {
 	if (result) {
         log.debug "result: ${result}"
         if (result.containsKey("state")) {
-                log.debug "state: ${result.state.text}"
-                sendEvent(name: "state", value: result.state.text)
+            log.debug "state: ${result.state.text}"
+            sendEvent(name: "state", value: result.state.text)
+            }
+        if (result.containsKey("temperature")) {
+        	log.debug "temps: ${result.temperature}"
+            sendEvent(name: "extruder1ActualTemp", value: "${result.temperature.tool0.actual}")
             }
     }
 }
