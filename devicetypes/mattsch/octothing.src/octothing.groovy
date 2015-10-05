@@ -31,10 +31,10 @@ metadata {
 		capability "Temperature Measurement"
         
         attribute	"state", "string"
-        attribute	"extruder1TargetTemp", "number"
+        attribute	"extruder1TargetTemp", "string"
         attribute	"extruder1ActualTemp", "string"
-        attribute	"bedTargetTemp", "number"
-        attribute	"bedActualTemp", "number"
+        attribute	"bedTargetTemp", "string"
+        attribute	"bedActualTemp", "string"
 	}
 }
 
@@ -54,9 +54,23 @@ metadata {
         standardTile("refresh", "device.refresh", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
             state "default", action:"refresh.refresh", icon: "st.secondary.refresh"
         }
-        valueTile("temperature", "device.extruder1ActualTemp", width: 2, height: 2) {
-            state("temperature", label:'E: ${currentValue}°',
+        valueTile("extruderTemp", "device.extruder1ActualTemp", width: 2, height: 2) {
+            state("extruderTemp", label:'Extruder: ${currentValue}°',
                 backgroundColors:[
+                    [value: 31, color: "#153591"],
+                    [value: 44, color: "#1e9cbb"],
+                    [value: 59, color: "#90d2a7"],
+                    [value: 74, color: "#44b621"],
+                    [value: 84, color: "#f1d801"],
+                    [value: 95, color: "#d04e00"],
+                    [value: 96, color: "#bc2323"]
+                ]
+            )
+         }
+         valueTile("bedTemp", "device.bedActualTemp", width: 2, height: 2) {
+            state("bedTemp", label:'Bed: ${currentValue}°',
+                backgroundColors:[
+                	[value: 0, color: "#d3d3d3"],
                     [value: 31, color: "#153591"],
                     [value: 44, color: "#1e9cbb"],
                     [value: 59, color: "#90d2a7"],
@@ -68,9 +82,9 @@ metadata {
             )
         }
       //main "octothing"
-      //details (["octothing", "temperature", "refresh"])
-      main "temperature"
-      details (["temperature", "refresh"])
+      //details (["octothing", "extruderTemp", "refresh"])
+      main "extruderTemp"
+      details (["extruderTemp", "bedTemp", "refresh"])
     }
 }
 
@@ -98,6 +112,11 @@ def parse(String description) {
         if (result.containsKey("temperature")) {
         	log.debug "temps: ${result.temperature}"
             sendEvent(name: "extruder1ActualTemp", value: "${result.temperature.tool0.actual}")
+            if (result.temperature.bed) {
+            	sendEvent(name: "bedActualTemp", value: "${result.temperature.bed.actual}")
+                } else {
+                sendEvent(name: "bedActualTemp", value: 0)
+                }
             }
     }
 }
