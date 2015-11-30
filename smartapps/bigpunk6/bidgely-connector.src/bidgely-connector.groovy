@@ -27,8 +27,8 @@ preferences {
 	section("House Power Meter") {
 		input "housePower", "capability.powerMeter", title: "House Power Meters", required:false, multiple: true
 	}
-    section("Idividule circuit Power Meters") {
-		input "circuitPower", "capability.powerMeter", title: "Idividule circuit Power Meters", required:false, multiple: true
+    section("Individual circuit Power Meters") {
+		input "circuitPower", "capability.powerMeter", title: "Individual circuit Power Meters", required:false, multiple: true
 	}
     section ("Bidgely API") {
 		input "apiUrl", "text", title: "API URL", required:true
@@ -88,10 +88,11 @@ private sendEvent(evt, meterType) {
 //            ]
 //        
 //        httpPost(postApi) { response ->
-//        log.info "httpPost responce:${response.status}"
+//        //log.info "httpPost ${postApi}"
+//        log.info "httpPost response:${response.status}"
 //	    }
 //    } else if (evt.name == "power") {
-		if (evt.name == "power") {
+	if (evt.name == "power") {
         streamType = "InstantaneousDemand"
         streamUnit = "kW"
         streamDescription = "Real-Time Demand"
@@ -122,7 +123,7 @@ private sendEvent(evt, meterType) {
               '</upload>'
             ]
             httpPost(postApi) { response ->
-            log.info "httpPost responce:${response.status}"
+            log.info "httpPost response:${response.status}"
 	        }
         }
     }
