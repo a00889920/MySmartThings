@@ -31,10 +31,11 @@ metadata {
 		capability "Temperature Measurement"
         
         attribute	"state", "string"
+        attribute	"temperature", "number"
         attribute	"extruder1TargetTemp", "string"
-        attribute	"extruder1ActualTemp", "string"
         attribute	"bedTargetTemp", "string"
         attribute	"bedActualTemp", "string"
+        attribute	"printProgress", "string"
 	}
 }
 
@@ -44,17 +45,21 @@ metadata {
 	}
 
     tiles(scale: 2) {
-        //multiAttributeTile(name:"octothing", type:"generic", width:6, height:4) {
-        //    tileAttribute("device.state", key: "PRIMARY_CONTROL") {
-        //      attributeState "Offline", label: '${name}', icon:"st.Office.office19", backgroundColor:"#d3d3d3"
-        //      attributeState "Refreshing", label: '${name}', icon:"st.Office.office19", backgroundColor:"#79b821"
-        //      attributeState "Operational", label:'${name}', icon:"st.Office.office19", backgroundColor:"#79b821"
-        //    }
-        //}
+        multiAttributeTile(name:"octothing", type:"generic", width:6, height:4) {
+            tileAttribute("device.state", key: "PRIMARY_CONTROL") {
+              attributeState "offline", label: '${name}', icon:"st.Office.office19", backgroundColor:"#d3d3d3"
+              attributeState "printing", label: '${name}', icon:"st.Office.office19", backgroundColor:"#79b821"
+              attributeState "idle", label:'${name}', icon:"st.Office.office19", backgroundColor:"#79b821"
+              attributeState "error", label: '${name}', icon:"st.Office.office19", backgroundColor:"#bc2323"
+            }
+            tileAttribute("device.printProgress", key: "SECONDARY_CONTROL") {
+              attributeState "default", label: '${name}'
+            }
+        }
         standardTile("refresh", "device.refresh", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
             state "default", action:"refresh.refresh", icon: "st.secondary.refresh"
         }
-        valueTile("extruderTemp", "device.extruder1ActualTemp", width: 2, height: 2) {
+        valueTile("extruderTemp", "device.temperature", width: 2, height: 2) {
             state("extruderTemp", label:'Extruder: ${currentValue}°',
                 backgroundColors:[
                     [value: 31, color: "#153591"],
@@ -83,35 +88,37 @@ metadata {
         }
       //main "octothing"
       //details (["octothing", "extruderTemp", "refresh"])
-      main "extruderTemp"
-      details (["extruderTemp", "bedTemp", "refresh"])
+      main "octothing"
+      details (["octothing", "extruderTemp", "bedTemp", "refresh"])
     }
 }
 
 // parse events into attributes
 def parse(String description) {
 	log.debug "Parsing '${description}'"
-    def map = [:]
-    def descMap = parseDescriptionAsMap(description)
-    //log.debug descMap
-    def body = new String(descMap["body"].decodeBase64())
-    //log.debug "body: ${body}"
-    def result
-    try {
-        def slurper = new JsonSlurper()
-        result = slurper.parseText(body)
-    } catch (ex) {
-    	sendEvent(name: "state", value: "Offline")
+    def msg = parseLanMessage(description)
+    def result = msg.json
+    if (! result) {
+    	sendEvent(name: "state", value: "offline")
     }
 	if (result) {
         log.debug "result: ${result}"
-        if (result.containsKey("state")) {
-            log.debug "state: ${result.state.text}"
-            sendEvent(name: "state", value: result.state.text)
-            }
+        //if (result.containsKey("state")) {
+        //    log.debug "state: ${result.state.text}"
+        //    sendEvent(name: "state", value: result.state.text)
+        //    }
+        if (result.state.flags.printing) {
+        	sendEvent(name: "state", value: "printing")
+        } else if (! result.state.flags.printing) {
+        	sendEvent(name: "state", value: "idle")
+            sendEvent(name: "printProgress", value: "---")
+        } 
+        if (result.state.flags.error) {
+        	sendEvent(name: "state", value: "error")
+        }    
         if (result.containsKey("temperature")) {
         	log.debug "temps: ${result.temperature}"
-            sendEvent(name: "extruder1ActualTemp", value: "${result.temperature.tool0.actual}")
+            sendEvent(name: "temperature", value: "${result.temperature.tool0.actual}")
             if (result.temperature.bed) {
             	sendEvent(name: "bedActualTemp", value: "${result.temperature.bed.actual}")
                 } else {
@@ -121,17 +128,21 @@ def parse(String description) {
     }
 }
 
+def installed() {
+	refresh()
+}
+    
 // handle commands
 def poll() {
 	log.debug "Executing 'poll'"
-    sendEvent(name: "state", value: "Refreshing")
-    getDeviceInfo()
+    //sendEvent(name: "state", value: "Refreshing")
+    return getDeviceInfo()
 }
 
 def refresh() {
 	log.debug "Executing 'refresh'"
-    sendEvent(name: "state", value: "Refreshing")
-    getDeviceInfo()
+    //sendEvent(name: "state", value: "Refreshing")
+    return getDeviceInfo()
 }
 
 private getDeviceInfo() {
@@ -147,7 +158,7 @@ setDeviceNetworkId(ip,port)
   )//,delayAction(1000), refresh()]
   log.debug("Executing hubAction on " + getHostAddress())
   //log.debug hubAction
-  hubAction
+  return hubAction
 }
   
 private setDeviceNetworkId(ip,port){
