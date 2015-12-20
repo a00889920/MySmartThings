@@ -98,32 +98,33 @@ private sendEvent(evt, meterType) {
         streamDescription = "Real-Time Demand"
         def tmpValue = evt.value.toInteger()
         def streamValue = tmpValue.div(1000)
-        log.info "$evt.displayName $evt.name is $streamValue$streamUnit Type:$meterType"
         
         state.body << '<data time="' + timeStamp + '" value="' + streamValue + '" />'
-        log.debug state.body.size()
+        log.info "${state.body.size()}: ${evt.displayName} ${evt.name} is ${streamValue}${streamUnit} Type: ${meterType}"
+        
+        // log.debug state.body.size()
         if (state.body.size() >= uploadCount) {
             def postBody = state.body.collect { it }.join()
             //log.debug postBody
             log.info "Posting last ${uploadCount} events to ${apiUrl}"
             state.body = []
             def postApi = [
-    	    uri: apiUrl,
-            headers: ['Content-Type': 'application/xml'],
-	    	body:'<upload version="1.0">'+
-                 '<meters>'+
-                    '<meter id="' + evt.deviceId + '" model="API" type="' + meterType + '" description="' + evt.displayName + '">'+
-                       '<streams>'+
-                          '<stream id="' + streamType + '" unit="' + streamUnit + '" description="' + streamDescription + '">'+
-                             postBody +
-                          '</stream>'+
-                       '</streams>'+
-                    '</meter>'+
-                 '</meters>'+
-              '</upload>'
+                uri: apiUrl,
+                headers: ['Content-Type': 'application/xml'],
+                body:'<upload version="1.0">'+
+                     '<meters>'+
+                        '<meter id="' + evt.deviceId + '" model="API" type="' + meterType + '" description="' + evt.displayName + '">'+
+                           '<streams>'+
+                              '<stream id="' + streamType + '" unit="' + streamUnit + '" description="' + streamDescription + '">'+
+                                 postBody +
+                              '</stream>'+
+                           '</streams>'+
+                        '</meter>'+
+                     '</meters>'+
+                  '</upload>'
             ]
             httpPost(postApi) { response ->
-            log.info "httpPost response:${response.status}"
+            log.info "httpPost response: ${response.status}"
 	        }
         }
     }
