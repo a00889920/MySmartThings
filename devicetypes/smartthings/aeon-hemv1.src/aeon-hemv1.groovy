@@ -290,11 +290,11 @@ def configure() {
         zwave.configurationV1.configurationSet(parameterNumber: 4, size: 2, scaledConfigurationValue: 50).format(),     // Don't send unless watts have increased by 50
         zwave.configurationV1.configurationSet(parameterNumber: 8, size: 2, scaledConfigurationValue: 10).format(),     // Or by 10% (these 3 are the default values
         zwave.configurationV1.configurationSet(parameterNumber: 101, size: 4, scaledConfigurationValue: 4).format(),    // Combined watts
-        zwave.configurationV1.configurationSet(parameterNumber: 111, size: 4, scaledConfigurationValue: 60).format(),   // Every minute
+        zwave.configurationV1.configurationSet(parameterNumber: 111, size: 4, scaledConfigurationValue: 30).format(),   // Every 30 seconds
         zwave.configurationV1.configurationSet(parameterNumber: 102, size: 4, scaledConfigurationValue: 8).format(),    // Combined kWh
-        zwave.configurationV1.configurationSet(parameterNumber: 112, size: 4, scaledConfigurationValue: 120).format(),  // Every 2 minutes
+        zwave.configurationV1.configurationSet(parameterNumber: 112, size: 4, scaledConfigurationValue: 300).format(),  // Every 5 minutes
         zwave.configurationV1.configurationSet(parameterNumber: 103, size: 4, scaledConfigurationValue: 1).format(),    // Battery report
-        zwave.configurationV1.configurationSet(parameterNumber: 113, size: 4, scaledConfigurationValue: 1800).format()  // every 30 minutes
+        zwave.configurationV1.configurationSet(parameterNumber: 113, size: 4, scaledConfigurationValue: 7200).format()  // every 2 hours
     ])
     log.debug cmd
 
